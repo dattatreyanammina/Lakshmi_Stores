@@ -3,13 +3,16 @@ import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { motion } from 'motion/react';
-import { ShoppingBag, ChevronRight, Share2, Info, ArrowLeft, Truck, ShieldCheck, Heart } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Share2, Info, ArrowLeft, Truck, ShieldCheck, Heart, Check } from 'lucide-react';
+
+import { useCart } from '../context/CartContext';
 
 export function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeImg, setActiveImg] = useState(0);
+  const { addToCart, isInCart } = useCart();
 
   useEffect(() => {
     async function fetchProduct() {
@@ -113,7 +116,7 @@ export function ProductDetail() {
                 Craftsmanship & Care
               </h3>
               <p className="text-stone-600 font-sans leading-relaxed text-sm">
-                {product.description || "Indulge in the luxury of traditional craftsmanship. This exquisite piece from Lakshmi Fashion World is designed to make you feel like royalty at every occasion."}
+                {product.description || "Indulge in the luxury of traditional craftsmanship. This exquisite piece from Trusty Collections is designed to make you feel like royalty at every occasion."}
               </p>
             </div>
 
@@ -133,16 +136,26 @@ export function ProductDetail() {
             </div>
 
             <div className="flex flex-col gap-4">
-              <Link 
-                to={`/order/${product.id}`}
-                className="bg-stone-900 text-gold h-16 rounded-none font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-maroon transition-all transform active:scale-95 shadow-2xl relative overflow-hidden group"
-              >
-                <div className="absolute inset-0 bg-maroon translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <ShoppingBag size={20} strokeWidth={2.5} className="relative z-10" />
-                <span className="relative z-10">Place Order</span>
-              </Link>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => addToCart(product)}
+                  className="bg-white border border-maroon/15 text-maroon h-16 rounded-none font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-maroon hover:text-gold transition-all transform active:scale-95 shadow-lg relative overflow-hidden group"
+                >
+                  {isInCart(product.id) ? <Check size={20} strokeWidth={2.5} className="relative z-10" /> : <ShoppingBag size={20} strokeWidth={2.5} className="relative z-10" />}
+                  <span className="relative z-10">{isInCart(product.id) ? 'Added' : 'Add to Cart'}</span>
+                </button>
+                <Link 
+                  to={`/order/${product.id}`}
+                  className="bg-stone-900 text-gold h-16 rounded-none font-bold uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-maroon transition-all transform active:scale-95 shadow-2xl relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-maroon translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                  <ShoppingBag size={20} strokeWidth={2.5} className="relative z-10" />
+                  <span className="relative z-10">Checkout</span>
+                </Link>
+              </div>
               <button 
-                onClick={() => window.open(`https://wa.me/919491741484?text=${encodeURIComponent(`Hi Lakshmi Fashion World, I'm interested in ${product.title} (Price: ₹${product.price}). Is it available?`)}`)}
+                onClick={() => window.open(`https://wa.me/919491741484?text=${encodeURIComponent(`Hi Trusty Collections, I'm interested in ${product.title} (Price: ₹${product.price}). Is it available?`)}`)}
                 className="border border-stone-200 text-stone-600 h-16 rounded-none font-bold uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-stone-100 transition-all text-[11px]"
               >
                 Inquire on WhatsApp

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, orderBy, getDocs, limit } from 'firebase/firestore';
+import { useSearchParams } from 'react-router-dom';
 import { db } from '../lib/firebase';
 import { ProductCard } from '../components/ProductCard';
 import { motion } from 'motion/react';
@@ -11,6 +12,7 @@ export function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
+  const [searchParams] = useSearchParams();
   const bannerItems: Array<{ title: string; subtitle: string; image: string }> = [
     {
       title: 'Banarasi Sarees',
@@ -23,8 +25,33 @@ export function Home() {
       image: 'https://images.unsplash.com/photo-1610030469570-5f1a2f8f9e1f?q=80&w=800&auto=format&fit=crop',
     },
     {
-      title: 'Contemporary Ethnic',
+      title: 'Kalankari',
       subtitle: 'Modern style, classic weave',
+      image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Kanjivaram',
+      subtitle: 'Temple-inspired silks',
+      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Chiffon Sarees',
+      subtitle: 'Lightweight, elegant drape',
+      image: 'https://images.unsplash.com/photo-1610030469570-5f1a2f8f9e1f?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Tussar Silk',
+      subtitle: 'Natural texture and sheen',
+      image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Georgette Sarees',
+      subtitle: 'Soft flow for every occasion',
+      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800&auto=format&fit=crop',
+    },
+    {
+      title: 'Cotton Sarees',
+      subtitle: 'Breathable everyday comfort',
       image: 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?q=80&w=800&auto=format&fit=crop',
     },
   ];
@@ -45,6 +72,16 @@ export function Home() {
     }
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const category = searchParams.get('category');
+    if (category === 'Saree' || category === 'Dress' || category === 'All') {
+      setFilter(category);
+      return;
+    }
+
+    setFilter('All');
+  }, [searchParams]);
 
   const filteredProducts = filter === 'All' 
     ? products 
@@ -74,9 +111,9 @@ export function Home() {
           className="absolute right-[10%] top-[30%] h-44 w-44 rounded-full bg-maroon/20 blur-3xl"
         />
 
-        <div className="relative z-10 flex h-full items-end justify-center px-4 pb-6 md:pb-8">
-          <div className="w-full max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-black/10 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-[2px]">
-            <div className="relative min-h-[calc(62vh-4.5rem)] overflow-hidden px-4 py-4 md:px-8 md:py-6">
+        <div className="relative z-10 flex h-full items-center justify-center px-4 py-6 md:py-8">
+          <div className="w-full max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-black/10 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-[2px]">
+            <div className="relative overflow-hidden px-4 py-4 md:px-8 md:py-6">
               <motion.div
                 animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
@@ -88,12 +125,22 @@ export function Home() {
                 className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_45%)]"
               />
 
-              <div className="relative z-10 flex h-full items-center justify-center gap-6 text-center">
-                <div className="max-w-2xl pb-4 flex flex-col items-center">
-                  <h1 className="font-serif text-4xl italic text-white md:text-6xl">Lakshmi Fashion World</h1>
-                  <button className="mt-6 inline-flex items-center justify-center rounded-full border border-gold/40 bg-gold px-6 py-3 text-sm font-bold uppercase tracking-[0.28em] text-maroon transition-transform hover:-translate-y-0.5 hover:bg-gold-light">
-                    Order Now
-                  </button>
+              <div className="relative z-10 flex items-center justify-center px-2 text-center">
+                <div className="w-full max-w-4xl overflow-hidden rounded-[2rem] border border-gold/20 bg-black/35 p-3 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur-sm md:p-6">
+                  <div className="relative aspect-[16/9] overflow-hidden rounded-[1.5rem] bg-black md:aspect-[21/9]">
+                    <img
+                      src={encodeURI('/WhatsApp Image 2026-05-09 at 2.44.00 PM.jpeg')}
+                      alt="Trusty Collections brand artwork"
+                      className="h-full w-full object-contain object-center"
+                    />
+                    <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.18)_48%,rgba(0,0,0,0.55)_100%)]" />
+                  </div>
+                  <div className="mt-4 flex flex-col items-center gap-3 px-2 pb-1 md:flex-row md:justify-between md:px-4">
+                    <p className="text-[10px] uppercase tracking-[0.4em] text-gold/85 font-bold">Sarees that celebrate you</p>
+                    <a href="#products" className="inline-flex items-center justify-center rounded-full border border-gold/40 bg-gold px-5 py-3 text-[10px] font-bold uppercase tracking-[0.28em] text-maroon transition-transform hover:-translate-y-0.5 hover:bg-gold-light md:px-6 md:text-sm">
+                      Shop Collections
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
@@ -102,7 +149,7 @@ export function Home() {
       </section>
 
       {/* Sliding Banner Section */}
-      <section className="relative z-10 -mt-24 px-0 pb-8">
+      <section className="relative z-10 -mt-12 px-0 pb-8 md:-mt-10">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: -40 }}
@@ -143,7 +190,7 @@ export function Home() {
       </section>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pt-12 pb-20">
+      <div id="products" className="max-w-7xl mx-auto px-4 pt-12 pb-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div>
             <h2 className="text-4xl text-maroon font-bold mb-2">Our Collection</h2>

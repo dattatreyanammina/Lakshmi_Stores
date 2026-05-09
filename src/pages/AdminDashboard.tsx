@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { collection, query, orderBy, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { Package, ShoppingCart, Settings, LogOut, Plus, Search, Trash2, Edit3, ExternalLink, Filter, CheckCircle, Truck, Clock, IndianRupee } from 'lucide-react';
 import { format } from 'date-fns';
 import { AdminProductForm } from '../components/AdminProductForm';
+import { uploadFileViaServer } from '../lib/storageUpload';
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -13,10 +14,27 @@ export function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Account settings
+  const [newEmail, setNewEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [qrImageUrl, setQrImageUrl] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
+    try {
+      await signOut(auth);
+      setMessage('');
+      // Ensure redirect happens
+      navigate('/admin/login', { replace: true });
+    } catch (err) {
+      console.error('Logout error:', err);
+      // Force redirect even if logout fails
+      navigate('/admin/login', { replace: true });
+    }
   };
 
   useEffect(() => {
@@ -55,13 +73,115 @@ export function AdminDashboard() {
     }
   };
 
+  const handleEmailUpdate = async () => {
+    if (!newEmail) {
+      setMessage('Please enter a new email');
+      return;
+    }
+    if (!currentPassword) {
+      setMessage('Please enter your current password to verify');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) throw new Error('No user logged in');
+
+      // Reauthenticate before updating email
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      await updateEmail(user, newEmail);
+
+      setMessage('Email updated successfully!');
+      setNewEmail('');
+      setCurrentPassword('');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      setMessage(`Error updating email: ${err.message}`);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!currentPassword) {
+      setMessage('Please enter your current password');
+      return;
+    }
+    if (!newPassword || !confirmPassword) {
+      setMessage('Please enter new password and confirm it');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setMessage('New passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setMessage('New password must be at least 6 characters');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const user = auth.currentUser;
+      if (!user || !user.email) throw new Error('No user logged in');
+
+      // Reauthenticate before updating password
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+
+      setMessage('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      setMessage(`Error updating password: ${err.message}`);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !files[0]) return;
+
+    const file = files[0];
+
+    // Validation
+    if (!file.type.startsWith('image/')) {
+      setMessage('Please select an image file');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage('QR image must be less than 5MB');
+      return;
+    }
+
+    setUpdating(true);
+    try {
+      const storagePath = `qrcodes/upi_qr_${Date.now()}_${file.name}`;
+      const url = await uploadFileViaServer(file, storagePath);
+      setQrImageUrl(url);
+      setMessage('QR image uploaded successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err: any) {
+      setMessage(`Error uploading QR: ${err.message}`);
+    } finally {
+      setUpdating(false);
+      if (e.target) e.target.value = '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-stone-100 flex">
       {/* Sidebar */}
       <aside className="w-64 bg-stone-900 text-white flex flex-col fixed h-full z-10">
         <div className="p-8 border-b border-white/10">
           <Link to="/" className="flex flex-col items-center">
-            <span className="text-gold font-serif text-xl font-bold tracking-tight italic">Lakshmi Portal</span>
+            <span className="text-gold font-serif text-xl font-bold tracking-tight italic">Trusty Portal</span>
           </Link>
         </div>
         
@@ -222,8 +342,77 @@ export function AdminDashboard() {
           <Route path="/settings" element={
             <div className="max-w-2xl">
               <h1 className="text-4xl font-bold text-stone-800 italic mb-10">Store Settings</h1>
+              
+              {message && (
+                <div className={`mb-8 p-4 rounded-lg font-medium ${message.includes('Error') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                  {message}
+                </div>
+              )}
+
               <div className="bg-white rounded-xl p-10 border border-stone-200 shadow-xl space-y-8">
-                <div className="space-y-4">
+                {/* Account Settings */}
+                <div className="space-y-4 pb-8 border-b border-stone-200">
+                  <h3 className="text-xs uppercase tracking-widest font-bold text-stone-400">Account Settings</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-bold text-stone-700">Current Email</label>
+                    <div className="w-full bg-stone-100 border border-stone-200 rounded-lg p-4 font-medium text-stone-700">
+                      {auth.currentUser?.email || 'Not logged in'}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-bold text-stone-700">New Email (Optional)</label>
+                    <input 
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      placeholder="Enter new email"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-lg p-4 font-medium outline-none focus:ring-2 focus:ring-maroon" 
+                    />
+                  </div>
+                </div>
+
+                {/* Password Settings */}
+                <div className="space-y-4 pb-8 border-b border-stone-200">
+                  <h3 className="text-xs uppercase tracking-widest font-bold text-stone-400">Security</h3>
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-bold text-stone-700">Current Password</label>
+                    <input 
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Required for any changes"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-lg p-4 font-medium outline-none focus:ring-2 focus:ring-maroon" 
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-bold text-stone-700">New Password (Optional)</label>
+                    <input 
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Leave blank to keep current"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-lg p-4 font-medium outline-none focus:ring-2 focus:ring-maroon" 
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-bold text-stone-700">Confirm New Password</label>
+                    <input 
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      className="w-full bg-stone-50 border border-stone-200 rounded-lg p-4 font-medium outline-none focus:ring-2 focus:ring-maroon" 
+                    />
+                  </div>
+                </div>
+
+                {/* Payment Configuration */}
+                <div className="space-y-4 pb-8 border-b border-stone-200">
                   <h3 className="text-xs uppercase tracking-widest font-bold text-stone-400">Payment Configuration</h3>
                   <div className="space-y-4">
                     <div className="space-y-1">
@@ -236,17 +425,39 @@ export function AdminDashboard() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-stone-700">UPI QR Code</label>
-                      <div className="border-2 border-dashed border-stone-200 rounded-xl p-8 flex flex-col items-center justify-center bg-stone-50 group hover:border-gold transition-colors cursor-pointer">
+                      {qrImageUrl && (
+                        <div className="mb-4">
+                          <img src={qrImageUrl} alt="UPI QR Code" className="h-48 w-48 border-2 border-stone-200 rounded-lg" />
+                        </div>
+                      )}
+                      <label className="border-2 border-dashed border-stone-200 rounded-xl p-8 flex flex-col items-center justify-center bg-stone-50 group hover:border-gold transition-colors cursor-pointer">
+                        <input 
+                          type="file"
+                          accept="image/*"
+                          onChange={handleQrUpload}
+                          disabled={updating}
+                          className="hidden"
+                        />
                         <QrCode size={48} className="text-stone-300 group-hover:text-gold transition-colors mb-4" />
                         <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">Upload New QR Image</p>
-                      </div>
+                      </label>
                     </div>
                   </div>
                 </div>
                 
-                <button className="bg-maroon text-white px-10 py-5 rounded-lg font-bold uppercase tracking-widest hover:bg-stone-800 transition-all shadow-xl">
-                  Save All Settings
-                </button>
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => {
+                      if (newEmail && currentPassword) handleEmailUpdate();
+                      if (newPassword && currentPassword) handlePasswordUpdate();
+                      if (!newEmail && !newPassword) setMessage('No changes to save');
+                    }}
+                    disabled={updating}
+                    className="bg-maroon text-white px-10 py-5 rounded-lg font-bold uppercase tracking-widest hover:bg-stone-800 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {updating ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
               </div>
             </div>
           } />

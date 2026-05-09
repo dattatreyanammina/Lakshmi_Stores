@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { ShoppingBag, Eye } from 'lucide-react';
+import { ShoppingBag, Check } from 'lucide-react';
 
+import { useCart } from '../context/CartContext';
 import { Product } from '../types';
 
 interface ProductCardProps {
@@ -11,6 +12,9 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, delay = 0 }) => {
+  const { addToCart, isInCart } = useCart();
+  const inCart = isInCart(product.id);
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -43,7 +47,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, delay = 0 }) 
                   </h3>
                 </div>
                 <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.28em] text-white/90 backdrop-blur-sm">
-                  LFW-{product.id.slice(0,4).toUpperCase()}
+                  TC-{product.id.slice(0,4).toUpperCase()}
                 </span>
               </div>
             </div>
@@ -63,12 +67,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, delay = 0 }) 
       </Link>
       
       <div className="flex gap-2">
-        <Link 
+        <button
+          type="button"
+          onClick={() => addToCart(product)}
+          className="flex-grow inline-flex items-center justify-center gap-2 rounded-full border border-maroon/20 bg-white px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-maroon shadow-[0_10px_24px_rgba(0,0,0,0.06)] transition-all hover:-translate-y-0.5 hover:border-maroon hover:bg-maroon hover:text-gold"
+        >
+          {inCart ? <Check size={14} strokeWidth={2.5} /> : <ShoppingBag size={14} strokeWidth={2.5} />}
+          {inCart ? 'Added' : 'Add to Cart'}
+        </button>
+        <Link
           to={`/order/${product.id}`}
           className="flex-grow inline-flex items-center justify-center gap-2 rounded-full bg-maroon px-5 py-3 text-[10px] font-bold uppercase tracking-[0.24em] text-gold shadow-[0_14px_30px_rgba(128,0,0,0.25)] transition-all hover:-translate-y-0.5 hover:bg-stone-900"
         >
-          <ShoppingBag size={14} strokeWidth={2.5} />
-          Order Now
+          Checkout
         </Link>
       </div>
     </motion.div>

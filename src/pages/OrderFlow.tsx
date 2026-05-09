@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, QrCode, Upload, ArrowRight, ShieldCheck, CreditCard, Loader2 } from 'lucide-react';
 import { uploadFileViaServer } from '../lib/storageUpload';
 
+import { useCart } from '../context/CartContext';
+
 type Step = 'Details' | 'Payment' | 'Upload' | 'Success';
 
 export function OrderFlow() {
@@ -19,8 +21,14 @@ export function OrderFlow() {
   const [generatedOrderId, setGeneratedOrderId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const { items: cartItems, clearCart } = useCart();
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const checkoutItems = product ? [product] : cartItems;
+  const isCartCheckout = !productId;
+  const checkoutLabel = product ? product.title : 'Your Cart';
+  const checkoutTotal = checkoutItems.reduce((total, item) => total + (item.price * (item.quantity ?? 1)), 0);
+  const checkoutQuantity = checkoutItems.reduce((total, item) => total + (item.quantity ?? 1), 0);
 
   useEffect(() => {
     async function fetchProduct() {
@@ -37,16 +45,29 @@ export function OrderFlow() {
     fetchProduct();
   }, [productId]);
 
+  useEffect(() => {
+    if (!productId && cartItems.length === 0) {
+      setLoading(false);
+    }
+  }, [productId, cartItems.length]);
+
   const onDetailsSubmit = async (data: any) => {
     setLoading(true);
     try {
-      const orderId = 'LFW-' + Math.floor(100000 + Math.random() * 900000);
+      const orderId = 'TC-' + Math.floor(100000 + Math.random() * 900000);
       const orderData = {
         ...data,
         orderId,
-        productId,
-        productTitle: product.title,
-        productPrice: product.price,
+        productId: productId ?? checkoutItems[0]?.id,
+        productTitle: product ? product.title : checkoutItems.map((item) => item.title).join(', '),
+        productPrice: product ? product.price : checkoutTotal,
+        itemCount: checkoutQuantity,
+        items: isCartCheckout ? checkoutItems.map((item) => ({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity ?? 1,
+        })) : undefined,
         status: 'Pending',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -111,6 +132,9 @@ export function OrderFlow() {
       }
       
       setStep('Success');
+      if (isCartCheckout) {
+        clearCart();
+      }
     } catch (error: any) {
       console.error("[OrderFlow] Upload error chain:", error);
       let errorMsg = error.message || 'Unknown error';
@@ -163,7 +187,19 @@ export function OrderFlow() {
     }
   };
 
-  if (!product) return <div className="py-20 text-center">Loading product...</div>;
+  if (!product && (!isCartCheckout || cartItems.length === 0)) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-24 text-center">
+        <h1 className="text-3xl font-serif italic text-stone-900 mb-4">Your cart is empty</h1>
+        <p className="text-stone-500 mb-8">Add something from the collection before starting checkout.</p>
+        <button onClick={() => navigate('/')} className="inline-flex items-center justify-center rounded-full bg-maroon px-6 py-3 text-sm font-bold uppercase tracking-[0.24em] text-gold">
+          Browse Collections
+        </button>
+      </div>
+    );
+  }
+
+  if (!product && isCartCheckout && cartItems.length > 0 && loading) return <div className="py-20 text-center">Loading product...</div>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16 min-h-[80vh]">
@@ -192,12 +228,15 @@ export function OrderFlow() {
               >
                 <div className="flex flex-col md:flex-row gap-8 mb-12 pb-10 border-b border-stone-100">
                   <div className="w-24 h-32 ethnic-border shrink-0">
-                    <img src={product.images[0]} className="w-full h-full object-cover" alt="" />
+                    <img src={(product ?? cartItems[0]).images[0]} className="w-full h-full object-cover" alt="" />
                   </div>
                   <div className="pt-2">
-                    <h2 className="text-3xl font-serif font-bold text-stone-900 italic mb-2">{product.title}</h2>
+                    <h2 className="text-3xl font-serif font-bold text-stone-900 italic mb-2">{checkoutLabel}</h2>
                     <div className="inline-block bg-maroon text-gold px-3 py-1 text-xs font-bold font-serif mb-1 italic shadow-sm tracking-wide">Premium Product Selection</div>
-                    <p className="text-maroon font-serif text-xl font-bold mt-2">₹{product.price.toLocaleString('en-IN')}</p>
+                    <p className="text-maroon font-serif text-xl font-bold mt-2">₹{checkoutTotal.toLocaleString('en-IN')}</p>
+                    {isCartCheckout && cartItems.length > 1 && (
+                      <p className="text-stone-500 text-xs uppercase tracking-[0.25em] mt-2">{checkoutQuantity} items in cart</p>
+                    )}
                   </div>
                 </div>
 
@@ -254,7 +293,7 @@ export function OrderFlow() {
                 <div className="bg-[#fcf8f0] border border-gold/10 p-10 mb-10 shadow-inner">
                   <h2 className="text-[10px] uppercase tracking-[0.4em] font-bold text-gold mb-4 underline underline-offset-8">Secure Transaction Portal</h2>
                   <h3 className="text-3xl font-serif font-bold text-stone-900 italic mb-4 leading-tight">Complete Your Purchase</h3>
-                  <p className="text-stone-500 text-sm mb-10 font-serif">Please settle the outstanding amount of <span className="font-bold text-maroon text-lg italic">₹{product.price.toLocaleString('en-IN')}</span> using our verified UPI channel.</p>
+                  <p className="text-stone-500 text-sm mb-10 font-serif">Please settle the outstanding amount of <span className="font-bold text-maroon text-lg italic">₹{checkoutTotal.toLocaleString('en-IN')}</span> using our verified UPI channel.</p>
                   
                   <div className="p-4 inline-block ethnic-border mb-10 bg-white shadow-xl transform hover:scale-105 transition-transform duration-500 cursor-zoom-in">
                     <div className="w-64 h-64 bg-stone-50 flex items-center justify-center relative overflow-hidden">

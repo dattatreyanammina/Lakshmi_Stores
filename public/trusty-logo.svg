@@ -1,0 +1,18 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="36" y1="28" x2="220" y2="228" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7F0000"/>
+      <stop offset="1" stop-color="#3A0A0A"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="64" y1="52" x2="196" y2="204" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7E7A1"/>
+      <stop offset="0.5" stop-color="#D4AF37"/>
+      <stop offset="1" stop-color="#B88912"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="122" fill="url(#bg)"/>
+  <circle cx="128" cy="128" r="104" fill="none" stroke="url(#gold)" stroke-width="10"/>
+  <path d="M74 76H182C186.418 76 190 79.5817 190 84V95C190 99.4183 186.418 103 182 103H146V181C146 185.418 142.418 189 138 189H118C113.582 189 110 185.418 110 181V103H74C69.5817 103 66 99.4183 66 95V84C66 79.5817 69.5817 76 74 76Z" fill="url(#gold)"/>
+  <path d="M74 76H182C186.418 76 190 79.5817 190 84V95C190 99.4183 186.418 103 182 103H146V181C146 185.418 142.418 189 138 189H118C113.582 189 110 185.418 110 181V103H74C69.5817 103 66 99.4183 66 95V84C66 79.5817 69.5817 76 74 76Z" fill="white" fill-opacity="0.08"/>
+  <circle cx="128" cy="128" r="8" fill="#F7E7A1" opacity="0.9"/>
+</svg>

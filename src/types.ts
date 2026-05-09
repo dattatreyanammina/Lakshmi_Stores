@@ -8,6 +8,10 @@ export interface Product {
   createdAt?: any;
 }
 
+export interface CartItem extends Product {
+  quantity: number;
+}
+
 export interface Order {
   id: string;
   orderId: string;

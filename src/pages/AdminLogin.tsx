@@ -70,7 +70,7 @@ export function AdminLogin() {
         
         <div className="text-center mb-10">
           <div className="inline-flex flex-col items-center mb-6">
-            <span className="text-maroon font-serif text-3xl font-bold italic tracking-tighter leading-none">Lakshmi</span>
+            <span className="text-maroon font-serif text-3xl font-bold italic tracking-tighter leading-none">Trusty</span>
             <span className="text-gold text-[10px] uppercase tracking-[0.3em] font-medium leading-none mt-1">Admin Portal</span>
           </div>
           <h2 className="text-lg font-bold text-stone-800 uppercase tracking-widest border-b border-stone-100 pb-4">Secure Sign In</h2>
@@ -108,7 +108,7 @@ export function AdminLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full bg-transparent border-b-2 border-stone-100 py-3 pl-8 pr-4 outline-none focus:border-gold transition-colors font-medium text-sm"
-                placeholder="admin@lakshmi.com"
+                placeholder="trusty@admin.com"
               />
             </div>
           </div>
