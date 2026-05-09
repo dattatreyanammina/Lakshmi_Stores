@@ -202,7 +202,7 @@ export function OrderFlow() {
                 </div>
 
                 <div className="mb-10">
-                  <h3 className="text-xs uppercase tracking-[0.3em] font-bold text-gold mb-1">Reservation Form</h3>
+                  <h3 className="text-xs uppercase tracking-[0.3em] font-bold text-gold mb-1">Order Form</h3>
                   <h4 className="text-2xl font-serif italic text-stone-900">Shipping Details</h4>
                 </div>
                 
@@ -346,7 +346,7 @@ export function OrderFlow() {
                   <div className="absolute inset-0 border-4 border-gold/10 animate-ping" />
                   <CheckCircle2 size={48} strokeWidth={1} />
                 </div>
-                <h2 className="text-2xl uppercase tracking-[0.4em] font-bold text-gold mb-4">Reservation Successful</h2>
+                <h2 className="text-2xl uppercase tracking-[0.4em] font-bold text-gold mb-4">Order Successful</h2>
                 <h3 className="text-4xl md:text-6xl text-stone-900 font-bold mb-6 font-serif italic text-maroon">With Deep Gratitude</h3>
                 <p className="text-stone-600 mb-12 px-10 font-serif leading-relaxed text-lg italic">Your exquisite selection is now reserved. Our curators will verify the transaction and update your journey status shortly.</p>
                 

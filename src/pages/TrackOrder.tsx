@@ -175,7 +175,7 @@ export function TrackOrder() {
                     <p className="text-stone-700 text-xs font-bold tracking-widest">{order.pincode}</p>
                   </div>
                   <div className="mt-8 pt-6 border-t border-gold/10">
-                    <p className="text-[9px] uppercase tracking-widest font-bold text-gold mb-1">Reservation Date</p>
+                    <p className="text-[9px] uppercase tracking-widest font-bold text-gold mb-1">Order Date</p>
                     <p className="text-xs font-serif italic text-stone-500">
                       {order.createdAt ? format(order.createdAt.toDate(), 'PPP p') : 'Processing...'}
                     </p>

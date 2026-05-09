@@ -64,7 +64,7 @@ async function startServer() {
         html: `
           <div style="font-family: serif; color: #1c1917; max-width: 600px; margin: 0 auto; border: 1px solid #d4af37; padding: 40px;">
             <h1 style="color: #800000; text-align: center; font-style: italic;">Thank You for Your Patronage</h1>
-            <p style="text-align: center; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; color: #d4af37;">Reservation Confirmed</p>
+            <p style="text-align: center; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; color: #d4af37;">Order Confirmed</p>
             
             <div style="background-color: #fcf8f0; padding: 20px; margin: 20px 0;">
               <p><strong>Order ID:</strong> ${orderId}</p>

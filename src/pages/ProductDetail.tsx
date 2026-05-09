@@ -139,7 +139,7 @@ export function ProductDetail() {
               >
                 <div className="absolute inset-0 bg-maroon translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                 <ShoppingBag size={20} strokeWidth={2.5} className="relative z-10" />
-                <span className="relative z-10">Place Secure Order</span>
+                <span className="relative z-10">Place Order</span>
               </Link>
               <button 
                 onClick={() => window.open(`https://wa.me/919491741484?text=${encodeURIComponent(`Hi Lakshmi Fashion World, I'm interested in ${product.title} (Price: ₹${product.price}). Is it available?`)}`)}
